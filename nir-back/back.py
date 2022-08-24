@@ -5,6 +5,8 @@ Run a Flask REST API exposing one or more YOLOv5s models
 
 import argparse
 import io
+import shutil
+from pathlib import Path
 
 import torch
 from flask import send_file, Flask, request
@@ -14,6 +16,7 @@ from os import walk
 
 path_to_repo = 'D:\\nirProjectBase\\yolo\\yolov5\\'
 path_to_models = path_to_repo + 'models\\'
+path_to_result = 'runs\\detect\\exp\\'
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -27,6 +30,10 @@ DETECTION_URL = "/api/nets/run/<model>"
 def predict(model):
     if request.method != "POST":
         return
+    try:
+        shutil.rmtree(path_to_result)
+    except Exception as e:
+        print('Failed to delete %s. Reason: %s' % (path_to_result, e))
 
     if request.files.get("image"):
         im_file = request.files["image"]
@@ -35,9 +42,9 @@ def predict(model):
 
         if model in models:
             results = models[model](im, size=640)
-            path = results.save()
-            filenames = next(walk(path), (None, None, []))[2]
-            return send_file(path / filenames[0], mimetype='image/jpeg')
+            results.save(save_dir=path_to_result)
+            filenames = next(walk(path_to_result), (None, None, []))[2]
+            return send_file(Path(path_to_result) / filenames[0], mimetype='image/jpeg')
 
 
 if __name__ == "__main__":
