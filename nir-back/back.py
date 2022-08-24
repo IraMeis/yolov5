@@ -7,19 +7,23 @@ import argparse
 import io
 
 import torch
-from flask import Flask, request
+from flask import send_file, Flask, request
 from PIL import Image
+from flask_cors import CORS, cross_origin
+from os import walk
 
 path_to_repo = 'D:\\nirProjectBase\\yolo\\yolov5\\'
 path_to_models = path_to_repo + 'models\\'
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 models = {}
-modelNames = {'model1','model2','model3','model4'}
 
 DETECTION_URL = "/api/nets/run/<model>"
 
 
 @app.route(DETECTION_URL, methods=["POST"])
+@cross_origin()
 def predict(model):
     if request.method != "POST":
         return
@@ -31,7 +35,9 @@ def predict(model):
 
         if model in models:
             results = models[model](im, size=640)
-            return results.pandas().xyxy[0].to_json(orient="records")
+            path = results.save()
+            filenames = next(walk(path), (None, None, []))[2]
+            return send_file(path / filenames[0], mimetype='image/jpeg')
 
 
 if __name__ == "__main__":
@@ -44,9 +50,7 @@ if __name__ == "__main__":
         'model4'
     ], help='model(s) to run, i.e. --model yolov5n yolov5s')
     opt = parser.parse_args()
-    print(opt.model)
     for m in opt.model:
         models[m] = torch.hub.load(path_to_repo, m, path_to_models + m + '.pt', source='local', force_reload=True, skip_validation=True)
 
     app.run(host="0.0.0.0", port=opt.port)
-                                                   
