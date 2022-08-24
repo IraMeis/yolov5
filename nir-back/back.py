@@ -14,6 +14,7 @@ path_to_repo = 'D:\\nirProjectBase\\yolo\\yolov5\\'
 path_to_models = path_to_repo + 'models\\'
 app = Flask(__name__)
 models = {}
+modelNames = {'model1','model2','model3','model4'}
 
 DETECTION_URL = "/api/nets/run/<model>"
 
@@ -37,16 +38,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Flask API exposing YOLOv5 model")
     parser.add_argument("--port", default=5000, type=int, help="port number")
     parser.add_argument('--model', nargs='+', default=[
-        path_to_models + 'model1.pt',
-        path_to_models + 'model2.pt',
-        path_to_models + 'model3.pt',
-        path_to_models + 'model4.pt'
+        'model1',
+        'model2',
+        'model3',
+        'model4'
     ], help='model(s) to run, i.e. --model yolov5n yolov5s')
     opt = parser.parse_args()
-
+    print(opt.model)
     for m in opt.model:
-        models[m] = torch.hub.load(path_to_repo, 'custom', m, source='local', force_reload=True, skip_validation=True)
+        models[m] = torch.hub.load(path_to_repo, m, path_to_models + m + '.pt', source='local', force_reload=True, skip_validation=True)
 
     app.run(host="0.0.0.0", port=opt.port)
-
-
+                                                   

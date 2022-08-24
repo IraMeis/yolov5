@@ -78,6 +78,22 @@ def custom(path='path/to/model.pt', autoshape=True, _verbose=True, device=None):
     return _create(path, autoshape=autoshape, verbose=_verbose, device=device)
 
 
+def model1(path='', autoshape=True, _verbose=True, device=None):
+    return custom(path, autoshape, _verbose, device)
+
+
+def model2(path='', autoshape=True, _verbose=True, device=None):
+    return custom(path, autoshape, _verbose, device)
+
+
+def model3(path='', autoshape=True, _verbose=True, device=None):
+    return custom(path, autoshape, _verbose, device)
+
+
+def model4(path='', autoshape=True, _verbose=True, device=None):
+    return custom(path, autoshape, _verbose, device)
+
+
 def yolov5n(pretrained=True, channels=3, classes=80, autoshape=True, _verbose=True, device=None):
     # YOLOv5-nano model https://github.com/ultralytics/yolov5
     return _create('yolov5n', pretrained, channels, classes, autoshape, _verbose, device)
