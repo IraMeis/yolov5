@@ -16,7 +16,7 @@ from os import walk
 
 path_to_repo = 'D:\\nirProjectBase\\yolo\\yolov5\\'
 path_to_models = path_to_repo + 'models\\'
-path_to_result = 'runs\\detect\\exp\\'
+path_to_result = path_to_repo + 'nir-back\\runs\\detect\\exp\\'
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
