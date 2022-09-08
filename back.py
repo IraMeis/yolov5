@@ -14,13 +14,12 @@ from PIL import Image
 from flask_cors import CORS, cross_origin
 from os import walk
 
-path_to_repo = 'D:\\nirProjectBase\\yolo\\yolov5\\'
-path_to_models = path_to_repo + 'models\\'
-path_to_result = path_to_repo + 'nir-back\\runs\\detect\\exp\\'
+path_to_repo = Path().resolve()
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 models = {}
+paths = []
 
 DETECTION_URL = "/api/nets/run/<model>"
 
@@ -30,10 +29,13 @@ DETECTION_URL = "/api/nets/run/<model>"
 def predict(model):
     if request.method != "POST":
         return
-    try:
-        shutil.rmtree(path_to_result)
-    except Exception as e:
-        print('Failed to delete %s. Reason: %s' % (path_to_result, e))
+    
+    for p in paths:
+        try:
+            shutil.rmtree(path_to_repo / p)
+            paths.remove(p)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (p, e))
 
     if request.files.get("image"):
         im_file = request.files["image"]
@@ -42,9 +44,10 @@ def predict(model):
 
         if model in models:
             results = models[model](im, size=640)
-            results.save(save_dir=path_to_result)
-            filenames = next(walk(path_to_result), (None, None, []))[2]
-            return send_file(Path(path_to_result) / filenames[0], mimetype='image/jpeg')
+            path = results.save()
+            mv = send_file(path / next(walk(path), (None, None, []))[2][0], mimetype='image/jpeg')
+            paths.append(path)
+            return mv
 
 
 if __name__ == "__main__":
@@ -58,6 +61,6 @@ if __name__ == "__main__":
     ], help='model(s) to run, i.e. --model yolov5n yolov5s')
     opt = parser.parse_args()
     for m in opt.model:
-        models[m] = torch.hub.load(path_to_repo, m, path_to_models + m + '.pt', source='local', force_reload=True, skip_validation=True)
+        models[m] = torch.hub.load(path_to_repo, m, path_to_repo / Path(m + '.pt'), source='local', force_reload=True, skip_validation=True)
 
     app.run(host="0.0.0.0", port=opt.port)
