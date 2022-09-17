@@ -7,11 +7,11 @@ import argparse
 import io
 import shutil
 from pathlib import Path
-
 import torch
 from flask import send_file, Flask, request
 from PIL import Image
 from flask_cors import CORS, cross_origin
+from flask_api import status
 from os import walk
 
 path_to_repo = Path().resolve()
@@ -27,8 +27,6 @@ DETECTION_URL = "/api/nets/run/<model>"
 @app.route(DETECTION_URL, methods=["POST"])
 @cross_origin()
 def predict(model):
-    if request.method != "POST":
-        return
     
     for p in paths:
         try:
@@ -45,9 +43,10 @@ def predict(model):
         if model in models:
             results = models[model](im, size=640)
             path = results.save()
-            mv = send_file(path / next(walk(path), (None, None, []))[2][0], mimetype='image/jpeg')
             paths.append(path)
-            return mv
+            return send_file(path / next(walk(path), (None, None, []))[2][0], mimetype='image/jpeg')
+
+    return "BAD REQUEST", status.HTTP_400_BAD_REQUEST
 
 
 if __name__ == "__main__":
