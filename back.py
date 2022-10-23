@@ -7,6 +7,7 @@ import argparse
 import datetime
 import io
 import shutil
+from logging.config import fileConfig
 from pathlib import Path
 import torch
 from flask import send_file, Flask, request
@@ -15,6 +16,8 @@ from flask_cors import CORS, cross_origin
 from flask_api import status
 from flask_apscheduler import APScheduler
 from os import walk
+
+fileConfig('logging.cfg')
 
 path_to_repo = Path().resolve()
 app = Flask(__name__)
