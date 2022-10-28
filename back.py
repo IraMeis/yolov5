@@ -72,7 +72,18 @@ if __name__ == "__main__":
     ], help='model(s) to run, i.e. --model yolov5n yolov5s')
     opt = parser.parse_args()
     for m in opt.model:
-        models[m] = torch.hub.load(path_to_repo, m, path_to_repo / Path(m + '.pt'), source='local', 
+        models[m] = torch.hub.load(path_to_repo, m, path_to_repo / Path(m + '.pt'), source='local',
                                    force_reload=True, skip_validation=True)
     scheduler.start()
     app.run(host="0.0.0.0", port=opt.port)
+else:
+    for m in [
+        'model1',
+        'model2',
+        'model3',
+        'model4'
+    ]:
+        models[m] = torch.hub.load(path_to_repo, m, path_to_repo / Path(m + '.pt'), source='local',
+                                   force_reload=True, skip_validation=True)
+    scheduler.start()
+
