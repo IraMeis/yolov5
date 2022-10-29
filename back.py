@@ -1,4 +1,3 @@
-
 """
 Run a Flask REST API exposing one or more YOLOv5s models
 """
@@ -23,7 +22,7 @@ path_to_repo = Path().resolve()
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
-models = {}
+models = {'model1', 'model2', 'model3', 'model4'}
 pathsDates = []
 
 DETECTION_URL = "/api/image/run/<model>"
@@ -32,7 +31,7 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 
 
-@scheduler.task('interval', id='deletePhotos', seconds=20, misfire_grace_time=300)
+@scheduler.task('interval', id='deletePhotos', seconds=60, misfire_grace_time=300)
 def deletePhotos():
     # print('Delete job executed')
     # print(pathsDates)
@@ -54,7 +53,9 @@ def predict(model):
         im_bytes = im_file.read()
         im = Image.open(io.BytesIO(im_bytes))
         if model in models:
-            results = models[model](im, size=640)
+            runnable = torch.hub.load(path_to_repo, model, path_to_repo / Path(model + '.pt'), source='local',
+                                      force_reload=True, skip_validation=True)
+            results = runnable(im, size=640)
             path = results.save()
             pathsDates.append((path, datetime.datetime.now()))
             return send_file(path / next(walk(path), (None, None, []))[2][0], mimetype='image/jpeg')
@@ -64,26 +65,8 @@ def predict(model):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Flask API exposing YOLOv5 model")
     parser.add_argument("--port", default=5005, type=int, help="port number")
-    parser.add_argument('--model', nargs='+', default=[
-        'model1',
-        'model2',
-        'model3',
-        'model4'
-    ], help='model(s) to run, i.e. --model yolov5n yolov5s')
     opt = parser.parse_args()
-    for m in opt.model:
-        models[m] = torch.hub.load(path_to_repo, m, path_to_repo / Path(m + '.pt'), source='local',
-                                   force_reload=True, skip_validation=True)
     scheduler.start()
     app.run(host="0.0.0.0", port=opt.port)
 else:
-    for m in [
-        'model1',
-        'model2',
-        'model3',
-        'model4'
-    ]:
-        models[m] = torch.hub.load(path_to_repo, m, path_to_repo / Path(m + '.pt'), source='local',
-                                   force_reload=True, skip_validation=True)
     scheduler.start()
-
