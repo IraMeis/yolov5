@@ -26,7 +26,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 models = {}
 pathsDates = []
 
-DETECTION_URL = "/api/nets/run/<model>"
+DETECTION_URL = "/api/image/run/<model>"
 
 scheduler = APScheduler()
 scheduler.init_app(app)
