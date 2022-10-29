@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=OUR_ID' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=OUR_ID" -O filename.mov && rm -rf /tmp/cookies.txt
+# OUR_ID - ID из URL
+# filename.mov - название файла
+
+# m1
+# https://drive.google.com/file/d/1nZit4tKP0mf1-AZ-VVsWxwtqDYKfS6z7/view?usp=share_link
+
+# m2
+#https://drive.google.com/file/d/1p6O75UTEWlV044SrnKuPtRwI_aP-KKRT/view?usp=share_link
+
+# m4
+#https://drive.google.com/file/d/11IUTomdhUgBvyTpnPa9_t3M83pvbR5dm/view?usp=share_link
+
+#m3
+#https://drive.google.com/file/d/1-DCNEyZt_6z0b-W8tWBuFjZyDKtol9Ii/view?usp=share_link
+
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1-DCNEyZt_6z0b-W8tWBuFjZyDKtol9Ii' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1-DCNEyZt_6z0b-W8tWBuFjZyDKtol9Ii" -O model3.pt && rm -rf /tmp/cookies.txt
+
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1p6O75UTEWlV044SrnKuPtRwI_aP-KKRT' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1p6O75UTEWlV044SrnKuPtRwI_aP-KKRT" -O model2.pt && rm -rf /tmp/cookies.txt
+
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=1nZit4tKP0mf1-AZ-VVsWxwtqDYKfS6z7' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1nZit4tKP0mf1-AZ-VVsWxwtqDYKfS6z7" -O model1.pt && rm -rf /tmp/cookies.txt
+
+wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=11IUTomdhUgBvyTpnPa9_t3M83pvbR5dm' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=11IUTomdhUgBvyTpnPa9_t3M83pvbR5dm" -O model4.pt && rm -rf /tmp/cookies.txt
