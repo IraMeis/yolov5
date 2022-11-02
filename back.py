@@ -54,9 +54,14 @@ def predict(model):
         im = Image.open(io.BytesIO(im_bytes))
         if model in models:
             runnable = torch.hub.load(path_to_repo, model, path_to_repo / Path(model + '.pt'), source='local',
-                                      force_reload=True, skip_validation=True)
+                                      skip_validation=True, device='cpu')
             results = runnable(im, size=640)
             path = results.save()
+            del runnable
+            del results
+            del im
+            del im_file
+            del im_bytes
             pathsDates.append((path, datetime.datetime.now()))
             return send_file(path / next(walk(path), (None, None, []))[2][0], mimetype='image/jpeg')
     return "BAD REQUEST", status.HTTP_400_BAD_REQUEST
