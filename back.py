@@ -4,6 +4,7 @@ Run a Flask REST API exposing one or more YOLOv5s models
 
 import argparse
 import datetime
+import gc
 import io
 import shutil
 from logging.config import fileConfig
@@ -53,8 +54,9 @@ def predict(model):
         im_bytes = im_file.read()
         im = Image.open(io.BytesIO(im_bytes))
         if model in models:
+           # with torch.no_grad():
             runnable = torch.hub.load(path_to_repo, model, path_to_repo / Path(model + '.pt'), source='local',
-                                      skip_validation=True, device='cpu')
+                                      skip_validation=True)
             results = runnable(im, size=640)
             path = results.save()
             del runnable
@@ -62,6 +64,8 @@ def predict(model):
             del im
             del im_file
             del im_bytes
+            gc.collect()
+            torch.cuda.empty_cache()
             pathsDates.append((path, datetime.datetime.now()))
             return send_file(path / next(walk(path), (None, None, []))[2][0], mimetype='image/jpeg')
     return "BAD REQUEST", status.HTTP_400_BAD_REQUEST
