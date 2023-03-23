@@ -60,7 +60,7 @@ def predict(model):
                                       skip_validation=True)
             results = runnable(im, size=640)
             path = results.save()
-            results.display(txt=True, save_dir=path_to_repo / path)
+            results._run(txt=True, save_dir=path_to_repo / path)
             del runnable
             del results
             del im
