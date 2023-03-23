@@ -671,14 +671,20 @@ class Detections:
         self.t = tuple(x.t / self.n * 1E3 for x in times)  # timestamps (ms)
         self.s = shape  # inference BCHW shape
 
-    def display(self, pprint=False, show=False, save=False, crop=False, render=False, labels=True, save_dir=Path('')):
+    def display(self, pprint=False, show=False, save=False, crop=False, render=False, labels=True, txt=False, save_dir=Path('')):
         crops = []
         for i, (im, pred) in enumerate(zip(self.ims, self.pred)):
             s = f'image {i + 1}/{len(self.pred)}: {im.shape[0]}x{im.shape[1]} '  # string
+            k = ''
             if pred.shape[0]:
                 for c in pred[:, -1].unique():
                     n = (pred[:, -1] == c).sum()  # detections per class
                     s += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                    k += "{0} {1}\n".format(n, self.names[int(c)])
+                if txt:
+                    #os.makedirs(save_dir)
+                    with open(save_dir / 'res.txt', 'a') as ff:
+                        ff.write(k)
                 if show or save or render or crop:
                     annotator = Annotator(im, example=str(self.names))
                     for *box, conf, cls in reversed(pred):  # xyxy, confidence, class

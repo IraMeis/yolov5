@@ -4,17 +4,18 @@ Run a Flask REST API exposing one or more YOLOv5s models
 
 import argparse
 import datetime
+import glob
 import io
+import os
 import shutil
 from logging.config import fileConfig
 from pathlib import Path
 import torch
-from flask import send_file, Flask, request
+from flask import send_file, Flask, request, jsonify
 from PIL import Image
 from flask_cors import CORS, cross_origin
 from flask_api import status
 from flask_apscheduler import APScheduler
-from os import walk
 
 fileConfig('logging.cfg')
 
@@ -26,6 +27,7 @@ models = {'model1', 'model2', 'model3', 'model4'}
 pathsDates = []
 
 DETECTION_URL = "/api/image/run/<model>"
+EVAL_URL = "/api/image/eval/<name>"
 
 scheduler = APScheduler()
 scheduler.init_app(app)
@@ -37,7 +39,7 @@ def deletePhotos():
     # print(pathsDates)
     for pd in pathsDates:
         try:
-            if (datetime.datetime.now() - pd[1]).seconds > 10:
+            if (datetime.datetime.now() - pd[1]).seconds > 20:
                 shutil.rmtree(path_to_repo / pd[0])
                 pathsDates.remove(pd)
         except Exception as e:
@@ -46,7 +48,7 @@ def deletePhotos():
 
 
 @app.route(DETECTION_URL, methods=["POST"])
-@cross_origin()
+@cross_origin(expose_headers=['Content-Disposition'])
 def predict(model):
     if request.files.get("image"):
         im_file = request.files["image"]
@@ -57,14 +59,36 @@ def predict(model):
                                       skip_validation=True)
             results = runnable(im, size=640)
             path = results.save()
+            results.display(txt=True, save_dir=path_to_repo / path)
             del runnable
             del results
             del im
             del im_file
             del im_bytes
             pathsDates.append((path, datetime.datetime.now()))
-            return send_file(path / next(walk(path), (None, None, []))[2][0], mimetype='image/jpeg', as_attachment=True)
+            old_file = glob.glob(str(path) + '/*.jpg')[0]
+            new_file = os.path.join(path_to_repo / path,  os.path.basename(os.path.normpath(path_to_repo / path)) + '.jpg')
+            os.rename(old_file, new_file)
+            return send_file(new_file, mimetype='image/jpeg', as_attachment=True)
     return "BAD REQUEST", status.HTTP_400_BAD_REQUEST
+
+
+@app.route(EVAL_URL, methods=["GET"])
+@cross_origin()
+def eval_model(name):
+    mainPath = path_to_repo / 'runs' / 'detect' / name
+    dam_count = {'D00': 0, 'D10': 0, 'D20': 0, 'D40': 0, 'ALL': 0}
+    try:
+        with open(glob.glob(str(mainPath) + "/*.txt")[0]) as f:
+            for line in f:
+                (val, key) = line.split()
+                dam_count[key] = int(val)
+            for k, v in dam_count.items():
+                dam_count['ALL'] += dam_count[k] * int(k != 'ALL')
+        return jsonify(dam_count)
+
+    except IndexError:
+        return jsonify(dam_count)
 
 
 if __name__ == "__main__":
