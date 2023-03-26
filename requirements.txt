@@ -51,3 +51,6 @@ flask
 flask_cors
 flask_api
 flask_apscheduler
+
+# db
+psycopg2

@@ -3,14 +3,18 @@ Run a Flask REST API exposing one or more YOLOv5s models
 """
 
 import argparse
+import ast
 import datetime
 import gc
 import glob
 import io
+import json
 import os
 import shutil
 from logging.config import fileConfig
 from pathlib import Path
+
+import psycopg2
 import torch
 from flask import send_file, Flask, request, jsonify
 from PIL import Image
@@ -29,6 +33,8 @@ pathsDates = []
 
 DETECTION_URL = "/api/image/run/<model>"
 EVAL_URL = "/api/image/eval/<name>"
+SAVE_URL = "/api/save"
+GET_EVAL_URL = "/api/getEvals"
 
 scheduler = APScheduler()
 scheduler.init_app(app)
@@ -92,6 +98,52 @@ def eval_model(name):
 
     except IndexError:
         return jsonify(dam_count)
+
+
+def get_db_connection():
+    return psycopg2.connect(
+        host="localhost",
+        database="road_damage_detection",
+        user='postgres',
+        password='root')
+
+
+@app.route(SAVE_URL, methods=["POST"])
+@cross_origin()
+def save_to_bd():
+    request_data = request.get_json()
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('INSERT INTO evaluations (eval, coords, type)'
+                'VALUES (%s, %s, %s)',
+                (str(request_data['eval']),
+                 str(request_data['coords']),
+                 str(request_data['type']))
+                )
+    conn.commit()
+    cur.close()
+    conn.close()
+    return "OK", status.HTTP_200_OK
+
+
+@app.route(GET_EVAL_URL, methods=["PUT"])
+@cross_origin()
+def get_data():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT created_timestamp, eval, coords, type FROM evaluations where is_deleted=false;')
+    evls = cur.fetchall()
+    jsonEvls = []
+    for tpl in evls:
+        jsonEvls.append({
+            "date": tpl[0],
+            "eval": json.loads(tpl[1].replace("'", "\"")),
+            "coords": json.loads(tpl[2].replace("'", "\"")),
+            "type": tpl[3]
+        })
+    cur.close()
+    conn.close()
+    return jsonify({"data": jsonEvls})
 
 
 if __name__ == "__main__":
