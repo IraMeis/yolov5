@@ -129,9 +129,16 @@ def save_to_bd():
 @app.route(GET_EVAL_URL, methods=["PUT"])
 @cross_origin()
 def get_data():
+    dfr = request.args.get('from')
+    dto = request.args.get('to')
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute('SELECT created_timestamp, eval, coords, type FROM evaluations where is_deleted=false;')
+    executable = 'SELECT created_timestamp, eval, coords, type FROM evaluations where is_deleted=false '
+    if dfr:
+        executable += 'and created_timestamp >= date(\'' + dfr + '\') '
+    if dto:
+        executable += 'and created_timestamp <= date(\'' + dto + '\') '
+    cur.execute(executable)
     evls = cur.fetchall()
     jsonEvls = []
     for tpl in evls:
